@@ -14,6 +14,7 @@ exports.todosProdutos = (req, res, next) => {
                             id: prod.id_produto,
                             nome: prod.nome,
                             preco: prod.preco,
+                            caminho_imagem: prod.caminho_foto,
                             request: {
                                 tipo: 'GET',
                                 descricao: '',
@@ -33,8 +34,8 @@ exports.insereProduto = (req, res, next) => {
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({ error: error}) }
         conn.query(
-            'INSERT INTO produto (nome, preco) VALUES(?, ?)',
-            [req.body.nome, req.body.preco],
+            'INSERT INTO produto (nome, preco, caminho_foto) VALUES(?, ?, ?)',
+            [req.body.nome, req.body.preco, req.file.path],
             (error, resultado, field) => {
                 conn.release();
                 if (error) { return res.status(500).send({ error: error})}
@@ -44,6 +45,7 @@ exports.insereProduto = (req, res, next) => {
                         id: resultado.id_produto,
                         nome: req.body.nome,
                         preco: req.body.preco,
+                        caminho_imagem: req.file.path,
                         request: {
                             tipo: 'POST',
                             descricao: '',
@@ -79,6 +81,7 @@ exports.produtoUnico = (req, res, next) => {
                         id: resultado[0].id_produto,
                         nome: resultado[0].nome,
                         preco: resultado[0].preco,
+                        caminho_imagem: resultado[0].caminho_foto,
                         request: {
                             tipo: 'GET',
                             descricao: '',
@@ -98,11 +101,13 @@ exports.alteraProduto = (req, res, next) => {
         conn.query(
             `UPDATE produto 
             SET nome = ?,
-            preco = ?
+            preco = ?,
+            caminho_foto = ?
             WHERE id_produto = ? `,
             [
                 req.body.nome,
                 req.body.preco,
+                req.file.path,
                 req.body.id
             ],
             (error, resultado, fields) => {
@@ -113,6 +118,7 @@ exports.alteraProduto = (req, res, next) => {
                         id: req.body.id,
                         nome: req.body.nome,
                         preco: req.body.preco,
+                        caminho_imagem: req.file.path,
                         request: {
                             tipo: 'PATCH',
                             descricao: '',
