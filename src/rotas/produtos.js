@@ -1,27 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const crypto = require('crypto');
+
 const storage = multer.diskStorage({
     destination: function (req, file, callback) {
         callback(null, './fotos_produtos/');
     },
-    filename: function (req, file, callback) {
-        callback(null, new Date().getTime() + '.jpg');
+    filename: (req, file, callback) => {
+        crypto.randomBytes(16, (err, hash) => {
+            if(err) callback(err);
+            const tipo = file.mimetype.split('/');
+            const nomeFoto = `${req.usuario.nome.toLowerCase()}_${hash.toString('hex')}_${new Date().getTime()}.${tipo[1]}`;
+            callback(null, nomeFoto);
+        });
     }
 });
 const fileFilter = (req, file, cb) => {
-    if(file.mimetype === 'image/jpg') {
+    const permitidos = [
+        'image/jpg',
+        'image/png'
+    ];
+    if(permitidos.includes(file.mimetype)) {
         cb(null, true);
     }else {
-        cb(null, false);
+        cb(new Error('Formato inválido'));
     }
 }
 const upload = multer({
     storage: storage,
     limits: {
         fileSize: 1024 * 1024 * 5,
-        fileFilter: fileFilter
-    }
+    },
+    fileFilter: fileFilter
 });
 
 const controller = require('../controllers/produtoController');

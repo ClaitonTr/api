@@ -25,6 +25,7 @@ api.use((req, res, next) => {
 api.use('/produtos', produto);
 api.use('/pedidos', pedido);
 api.use('/usuarios', usuario);
+api.use('/fotos', express.static('./fotos_produtos'));
 
 api.use((req, res, next) => {
     const erro = new Error('Caminho não encontrado');
