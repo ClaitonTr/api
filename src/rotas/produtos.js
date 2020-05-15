@@ -18,13 +18,13 @@ const storage = multer.diskStorage({
 });
 const fileFilter = (req, file, cb) => {
     const permitidos = [
-        'image/jpg',
+        'image/jpeg',
         'image/png'
     ];
     if(permitidos.includes(file.mimetype)) {
         cb(null, true);
     }else {
-        cb(new Error('Formato inválido'));
+        cb(new Error('Formato de imagem inválido'));
     }
 }
 const upload = multer({
@@ -41,7 +41,7 @@ const auth = require('../middleware/check-auth');
 router.get('/', auth, controller.todosProdutos);
 router.post('/', auth, upload.single('imagem'), controller.insereProduto);
 router.get('/:cod', auth, controller.produtoUnico);
-router.patch('/', auth, controller.alteraProduto);
+router.patch('/', auth, upload.single('imagem'), controller.alteraProduto);
 router.delete('/', auth, controller.excluiProduto);
 
 router.put('/', (req, res, next) => {
