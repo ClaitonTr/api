@@ -1,7 +1,7 @@
 const mysql = require('../mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const tokenList = {};
 
 exports.cadastro = async(req, res, next) => {
     try {
@@ -73,25 +73,29 @@ exports.login = async(req, res, next) => {
                 menssagem: `O email inválido`
             });
         }
+        
         const login = bcrypt.compareSync(req.body.senha, usuario[0].senha);
         if(!login) {
             return res.status(401).send({
                 menssagem: 'senha incorreta'
-            })
+            });
         }
-        const token = jwt.sign({
-            id_usuario: usuario[0].id_usuario,
+
+        const userData = {
+            id: usuario[0].id_usuario,
             nome: usuario[0].nome,
             email: usuario[0].email
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: '1h'
-        });
-        return res.status(200).send({
+        }
+        
+        const token = jwt.sign( { user: userData }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_TOKEN_LIFE });
+        const refreshToken = jwt.sign( { user: userData }, process.env.JWT_REFRESH_TOKEN_SECRET);
+        const response = {
             menssagem: 'Autenticado com sucesso',
-            token: token
-        });
+            token: token,
+            refreshToken: refreshToken 
+        }
+        tokenList[refreshToken] = response;
+        return res.status(200).send(response);
     } catch (error) {
         return res.status(500).send({ error: error});
     }
@@ -132,4 +136,19 @@ exports.login = async(req, res, next) => {
             }
         )
     });*/
+}
+
+exports.token = (req,res) => {
+    const { refreshToken, usuario } = req.body;
+    
+    if((refreshToken) && (refreshToken in tokenList)) {
+        
+        const token = jwt.sign(usuario, process.env.JWT_SECRET, { expiresIn: process.env.JWT_TOKEN_LIFE });
+        tokenList[refreshToken].token = token
+        res.status(200).json({
+            "token": token
+        });        
+    } else {
+        res.status(404).send('Invalid request')
+    }
 }

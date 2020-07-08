@@ -3,10 +3,11 @@ const jwt = require('jsonwebtoken');
 module.exports = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
-        const deco = jwt.verify(token, 'Cl4170n');
-        req.usuario = deco; //pode ser usado nas rotas para mostrar id_usuario e email
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        req.usuario = decoded; //pode ser usado nas rotas para mostrar os dados do usuario
         next();
     } catch (error) {
-        res.status(401).send({ menssagem: 'Necessaário autenticação para prosseguir' });
+        res.status(401).send({ menssagem: 'Acesso negado' });
     }
 }
